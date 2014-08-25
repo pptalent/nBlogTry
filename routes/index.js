@@ -4,7 +4,8 @@
  */
 var crypto=require('crypto'),
     User=require('../models/User'),
-    Post=require('../models/Post');
+    Post=require('../models/Post'),
+    fs=require('fs');
 module.exports = function(app){
     app.get('/',function(req,res){
         Post.get(null,function(err,docs){
@@ -143,7 +144,38 @@ module.exports = function(app){
             }
         });
 
-    })
+    });
+    app.get('/upload',checkLogin);
+    app.get('/upload',function(req,res){
+       res.render('upload',{
+           title:"upload",
+           user:req.session.user,
+           success:req.flash('success').toString(),
+           error:req.flash('error').toString()
+       });
+    });
+    app.post('/upload',function(req,res){
+        //the file in the req.files
+       for(var i in req.files){
+           //因为在app.js中设置了上传路径,所以这些文件都会先上传到那个目录
+           //但是上传的文件，名字并不是原文件的名字，系统处理过的乱七八糟的名字，因此要重命名
+           console.log(req.files[i].path);
+           console.log(req.files[i].name);
+           if(req.files[i].size===0){
+               //使用同步的方式删除一个文件
+               fs.unlinkSync(req.files[i].path);
+               console.log('successly remove an empty file');
+           }
+           else{
+               var target_path='./public/images/'+req.files[i].name;
+               //使用同步的方式重命名
+               fs.renameSync(req.files[i].path,target_path);
+               console.log('rename');
+           }
+       }
+        req.flash('success','upload successfully');
+        res.redirect('/upload');
+    });
 };
 function checkLogin(req,res,next){
     if(!req.session.user){

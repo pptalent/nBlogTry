@@ -21,7 +21,10 @@ app.set('view engine', 'ejs');
 app.use(flash());
 app.use(express.favicon());
 app.use(express.logger('dev'));
-app.use(express.bodyParser());
+app.use(express.bodyParser({
+    keepExtensions:true, //保留文件的后缀名
+    uploadDir:'./public/images' //设置上传目录
+}));
 app.use(express.methodOverride());
 app.use(express.cookieParser()); //cookie解析的中间件
 app.use(express.session({ //提供回话支持
