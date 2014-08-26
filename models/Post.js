@@ -54,7 +54,8 @@ Post.prototype.save = function(callback) {
 };
 
 //读取文章及其相关信息
-Post.get = function(name, callback) {
+//第一个参数是null，则返回所有的文章，如果名字传入，返回该用户的所有文章
+Post.getAll = function(name, callback) {
     //打开数据库
     mongodb.open(function (err, db) {
         if (err) {
@@ -86,3 +87,33 @@ Post.get = function(name, callback) {
         });
     });
 };
+Post.getOne=function(name,date,title,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection('post',function(err,collection){
+                if(err){
+                    //因为这个时候已经打开了数据库，只是在collection的时候发生error
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                    collection.findOne({
+                        "name":name,
+                        "time.day":day,
+                        'title':title
+                    },function(err,doc){
+                       mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                        doc.post=markdown.toHTML(doc.post);
+                        callback(null,doc);
+                    });
+                }
+            })
+        }
+    })
+}

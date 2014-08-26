@@ -8,7 +8,7 @@ var crypto=require('crypto'),
     fs=require('fs');
 module.exports = function(app){
     app.get('/',function(req,res){
-        Post.get(null,function(err,docs){
+        Post.getAll(null,function(err,docs){
             if(err){
                 docs=[];
                 req.flash("error",err);
@@ -175,6 +175,18 @@ module.exports = function(app){
        }
         req.flash('success','upload successfully');
         res.redirect('/upload');
+    });
+    app.get('/u/:name',function(req,res){
+        //检查用户是否存在
+        User.get(req.params.name,function(err,user){
+            if(!user){
+                req.flash('error',err);
+                return res.redirect('/');
+            }
+            res.render('user',{
+               title:user.name
+            });
+        })
     });
 };
 function checkLogin(req,res,next){
