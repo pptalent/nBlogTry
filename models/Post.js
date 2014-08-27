@@ -93,7 +93,7 @@ Post.getOne=function(name,date,title,callback){
             return callback(err);
         }
         else{
-            db.collection('post',function(err,collection){
+            db.collection('posts',function(err,collection){
                 if(err){
                     //因为这个时候已经打开了数据库，只是在collection的时候发生error
                     mongodb.close();
@@ -102,7 +102,7 @@ Post.getOne=function(name,date,title,callback){
                 else{
                     collection.findOne({
                         "name":name,
-                        "time.day":day,
+                        "time.day":date,
                         'title':title
                     },function(err,doc){
                        mongodb.close();
@@ -110,7 +110,7 @@ Post.getOne=function(name,date,title,callback){
                             return callback(err);
                         }
                         doc.post=markdown.toHTML(doc.post);
-                        callback(null,doc);
+                        return callback(null,doc);
                     });
                 }
             })

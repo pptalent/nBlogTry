@@ -179,14 +179,46 @@ module.exports = function(app){
     app.get('/u/:name',function(req,res){
         //检查用户是否存在
         User.get(req.params.name,function(err,user){
-            if(!user){
+            if(err){
                 req.flash('error',err);
                 return res.redirect('/');
             }
-            res.render('user',{
-               title:user.name
-            });
+            else{
+
+                Post.getAll(user.name,function(err,docs){
+                    if(err){
+                        req.flash('error',err);
+                        return res.redirect('./');
+                    }
+                    else{
+                        res.render('user',{
+                           title:user.name,
+                           posts:docs,
+                           user:req.session.user,
+                           success:req.flash('success').toString(),
+                           error:req.flash('error').toString()
+                        });
+                    }
+                })
+            }
         })
+    });
+    app.get('/u/:name/:date/:title',function(req,res){
+       Post.getOne(req.params.name,req.params.date,req.params.title,function(err,doc){
+           if(err){
+               req.flash('error',err);
+               return res.redirect("/");
+           }
+           else{
+               res.render('article',{
+                   title:doc.title,
+                   user:req.session.user,
+                   post:doc,
+                   success:req.flash('success').toString(),
+                   error:req.flash('error').toString()
+               });
+           }
+       })
     });
 };
 function checkLogin(req,res,next){
