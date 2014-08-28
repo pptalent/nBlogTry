@@ -116,4 +116,26 @@ Post.getOne=function(name,date,title,callback){
             })
         }
     })
+};
+Post.edit=function(name,date,title,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection('posts',function(err,collection){
+                if(err){
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                    collection.findOne({
+                        "name":name,
+                        "time.day":date,
+                        "title":title
+                    })
+                }
+            })
+        }
+    })
 }
