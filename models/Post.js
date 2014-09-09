@@ -117,7 +117,7 @@ Post.getOne=function(name,date,title,callback){
         }
     })
 };
-Post.edit=function(name,date,title,callback){
+Post.edit=function(name,day,title,callback){
     mongodb.open(function(err,db){
         if(err){
             return callback(err);
@@ -133,6 +133,12 @@ Post.edit=function(name,date,title,callback){
                         "name":name,
                         "time.day":date,
                         "title":title
+                    },function(err,doc){
+                        mongodb.close();
+                        if(err){
+                          return  callback(err);
+                        }
+                        callback(null,doc);
                     })
                 }
             })
