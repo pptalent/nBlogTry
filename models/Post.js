@@ -131,7 +131,7 @@ Post.edit=function(name,day,title,callback){
                 else{
                     collection.findOne({
                         "name":name,
-                        "time.day":date,
+                        "time.day":day,
                         "title":title
                     },function(err,doc){
                         mongodb.close();
@@ -144,4 +144,7 @@ Post.edit=function(name,day,title,callback){
             })
         }
     })
+}
+Post.update=function(name,day,title,callback){
+
 }
