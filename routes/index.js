@@ -220,6 +220,18 @@ module.exports = function(app){
            }
        })
     });
+    app.get('/remove/:name/:day/:title',function(req,res){
+       Post.remove(req.params.name,req.params.day,req.params.title,function(err){
+           if(err){
+               req.flash("error",err);
+               return res.redirect('back');
+           }
+           else{
+               req.flash("success","remove success");
+               return res.redirect('/');
+           }
+       })
+    });
     app.get('/edit/:name/:day/:title',checkLogin);
     app.get('/edit/:name/:day/:title',function(req,res){
         var current_user=req.session.user;
@@ -239,11 +251,26 @@ module.exports = function(app){
            }
         })
     });
+    app.post("/edit/:name/:day/:title",function(req,res){
+        var name=req.session.user.name;
+        Post.update(name,req.params.day,req.params.title,req.body.post,function(err){
+            var url="/u/"+name+"/"+req.params.day+"/"+req.params.title;
+
+            if(err){
+                req.flash("error",err.toString());
+                return res.redirect(url);
+            }
+            else{
+                req.flash("success","modify success!");
+                return res.redirect(url);
+            }
+        })
+    })
 };
 function checkLogin(req,res,next){
     if(!req.session.user){
         req.flash('error','please log in first');
-        return res.redirect('/login');_
+        return res.redirect('/login');
     }
     else{
         next();

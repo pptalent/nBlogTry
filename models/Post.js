@@ -80,7 +80,7 @@ Post.getAll = function(name, callback) {
                     return callback(err);//失败！返回 err
                 }
                 docs.forEach(function(doc,index,array){
-                   doc.post=markdown.toHTML(doc.post);
+//                   doc.post=markdown.toHTML(doc.post);
                 });
                 callback(null, docs);//成功！以数组形式返回查询的结果
             });
@@ -109,7 +109,7 @@ Post.getOne=function(name,date,title,callback){
                         if(err){
                             return callback(err);
                         }
-                        doc.post=markdown.toHTML(doc.post);
+//                        doc.post=markdown.toHTML(doc.post);
                         return callback(null,doc);
                     });
                 }
@@ -145,6 +145,68 @@ Post.edit=function(name,day,title,callback){
         }
     })
 }
-Post.update=function(name,day,title,callback){
+Post.update=function(name,day,title,post,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection("posts",function(err,collection){
 
+                if(err){
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                    collection.update({
+                        "name":name,
+                        "time.day":day,
+                        "title":title
+                    },{
+                        $set:{post:post}
+                    },function(err){
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                        else{
+                            callback(null);
+                        }
+                    })
+                }
+            })
+        }
+    })
+}
+Post.remove=function(name,day,title,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            callback(err);
+        }
+        else{
+            db.collection("posts",function(err,collection){
+                if(err){
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                    collection.remove({
+                        "name":name,
+                        "time.day":day,
+                        "title":title
+                    },{
+                        w:1
+                    },function(err){
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
+                        }
+                        else{
+                            return callback(null);
+                        }
+                    })
+                }
+            })
+        }
+    })
 }
