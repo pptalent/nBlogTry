@@ -5,6 +5,7 @@ function Post(name, title, post) {
     this.name = name;
     this.title = title;
     this.post = post;
+
 }
 
 module.exports = Post;
@@ -26,7 +27,8 @@ Post.prototype.save = function(callback) {
         name: this.name,
         time: time,
         title: this.title,
-        post: this.post
+        post: this.post,
+        comments:[]
     };
     //打开数据库
     mongodb.open(function (err, db) {
@@ -109,7 +111,7 @@ Post.getOne=function(name,date,title,callback){
                         if(err){
                             return callback(err);
                         }
-//                        doc.post=markdown.toHTML(doc.post);
+
                         return callback(null,doc);
                     });
                 }
