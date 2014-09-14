@@ -1,11 +1,11 @@
 var mongodb=require('./db'),
     markdown=require('markdown').markdown;
 
-function Post(name, title, post) {
+function Post(name, title, post,tags) {
     this.name = name;
     this.title = title;
     this.post = post;
-
+    this.tags=tags
 }
 
 module.exports = Post;
@@ -28,6 +28,7 @@ Post.prototype.save = function(callback) {
         time: time,
         title: this.title,
         post: this.post,
+        tags:this.tags,
         comments:[]
     };
     //打开数据库
@@ -241,6 +242,64 @@ Post.archive=function(callback){
                         mongodb.close();
                         if(err){
                            return callback(err);
+                        }
+                        else{
+                            return callback(null,docs);
+                        }
+                    })
+                }
+            })
+        }
+    })
+}
+Post.getTags=function(callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection("posts",function(err,collection){
+               if(err){
+                   mongodb.close();
+                   return callback(err);
+               }
+                else{
+                   //使用distinct来返回给定键的所有不同值,因为有些文章的tag是一样的，distinct就相当于去重
+                   collection.distinct("tags",function(err,docs){
+                       mongodb.close();
+                       if(err){
+                           return callback(err);
+                       }
+                       else{
+                           return callback(null,docs);
+                       }
+                   })
+               }
+            });
+        }
+    })
+}
+Post.getTag=function(tag,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection("posts",function(err,collection){
+                if(err){
+                    return callback(err);
+                }
+                else{
+                    collection.find({"tags":tag},{
+                        name:1,
+                        time:1,
+                        title:1
+                    }).sort({
+                        time:-1
+                    }).toArray(function(err,docs){
+                        mongodb.close();
+                        if(err){
+                            return callback(err);
                         }
                         else{
                             return callback(null,docs);
