@@ -27,6 +27,23 @@ module.exports = function(app){
             });
         });
     });
+    app.get('/archive',function(req,res){
+        Post.archive(function(err,docs){
+            if(err){
+                req.flash("error",err);
+                return res.redirect("/");
+            }
+            else{
+                res.render("archive",{
+                   title:"archive",
+                    posts:docs,
+                    user:req.session.user,
+                   success:req.flash("success").toString(),
+                   error:req.flash("error").toString()
+                });
+            }
+        })
+    });
     app.get('/login',checkNotLogin);
     app.get('/login',function(req,res){
         res.render('login',{
