@@ -57,7 +57,7 @@ Post.prototype.save = function(callback) {
 
 //读取文章及其相关信息
 //第一个参数是null，则返回所有的文章，如果名字传入，返回该用户的所有文章
-Post.getAll = function(name, callback) {
+Post.getAll = function(name,page, callback) {
     //打开数据库
     mongodb.open(function (err, db) {
         if (err) {
@@ -74,18 +74,24 @@ Post.getAll = function(name, callback) {
                 query.name = name;
             }
             //根据 query 对象查询文章
-            collection.find(query).sort({
-                time: -1
-            }).toArray(function (err, docs) {
-                mongodb.close();
-                if (err) {
-                    return callback(err);//失败！返回 err
-                }
-                docs.forEach(function(doc,index,array){
-//                   doc.post=markdown.toHTML(doc.post);
-                });
-                callback(null, docs);//成功！以数组形式返回查询的结果
-            });
+            //使用count返回特定查询的文档数 total
+            collection.count(query,function(err,total){
+                collection.find(query,{
+                    skip:(page-1)*5,
+                    limit:5
+                }).sort({
+                    time:-1
+                }).toArray(function(err,docs){
+                    mongodb.close();
+                    if(err){
+                        return callback(err);
+                    }
+                    else{
+                        return callback(null,docs,total);
+                    }
+                })
+            })
+
         });
     });
 };

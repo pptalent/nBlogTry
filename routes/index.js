@@ -9,7 +9,8 @@ var crypto=require('crypto'),
     Comment=require("../models/Comment");
 module.exports = function(app){
     app.get('/',function(req,res){
-        Post.getAll(null,function(err,docs){
+        var page=req.query.p?parseInt(req.query.p):1;
+        Post.getAll(null,page,function(err,docs,total){
             if(err){
                 docs=[];
                 req.flash("error",err);
@@ -18,6 +19,9 @@ module.exports = function(app){
                title:"index",
                user:req.session.user,
                posts:docs,
+               page:page,
+               isFirstPage: (page - 1) === 0,
+               isLastPage: ((page - 1) * 5 + docs.length) === total,
                success:req.flash('success').toString() ,
                error:req.flash('error').toString()
             });
@@ -179,6 +183,7 @@ module.exports = function(app){
     });
     app.get('/u/:name',function(req,res){
         //检查用户是否存在
+        var page = req.query.p ? parseInt(req.query.p) : 1;
         User.get(req.params.name,function(err,user){
             if(err){
                 req.flash('error',err);
@@ -186,7 +191,7 @@ module.exports = function(app){
             }
             else{
 
-                Post.getAll(user.name,function(err,docs){
+                Post.getAll(user.name,page,function(err,docs,total){
                     if(err){
                         req.flash('error',err);
                         return res.redirect('./');
@@ -196,6 +201,9 @@ module.exports = function(app){
                            title:user.name,
                            posts:docs,
                            user:req.session.user,
+                           page:page,
+                           isFirstPage: (page - 1) === 0,
+                           isLastPage: ((page - 1) * 5 + docs.length) === total,
                            success:req.flash('success').toString(),
                            error:req.flash('error').toString()
                         });
