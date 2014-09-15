@@ -29,7 +29,8 @@ Post.prototype.save = function(callback) {
         title: this.title,
         post: this.post,
         tags:this.tags,
-        comments:[]
+        comments:[],
+        pv:0
     };
     //打开数据库
     mongodb.open(function (err, db) {
@@ -114,12 +115,27 @@ Post.getOne=function(name,date,title,callback){
                         "time.day":date,
                         'title':title
                     },function(err,doc){
-                       mongodb.close();
                         if(err){
+                            mongodb.close();
                             return callback(err);
                         }
-
-                        return callback(null,doc);
+                        if(doc){
+                            collection.update({
+                                'name':name,
+                                'time.day':date,
+                                'title':title
+                            },{
+                                $inc:{'pv':1}
+                            },function(err){
+                                mongodb.close();
+                                if(err){
+                                    return callback(err);
+                                }
+                                else{
+                                    return callback(null,doc);
+                                }
+                            })
+                        }
                     });
                 }
             })
@@ -265,13 +281,13 @@ Post.getTags=function(callback){
                }
                 else{
                    //使用distinct来返回给定键的所有不同值,因为有些文章的tag是一样的，distinct就相当于去重
-                   collection.distinct("tags",function(err,docs){
+                   collection.distinct("tags",function(err,tags){
                        mongodb.close();
                        if(err){
                            return callback(err);
                        }
                        else{
-                           return callback(null,docs);
+                           return callback(null,tags);
                        }
                    })
                }
