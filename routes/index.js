@@ -27,6 +27,26 @@ module.exports = function(app){
             });
         });
     });
+    app.get('/search',function(req,res){
+        var keyword=req.query.keyword;
+        Post.search(keyword,function(err,docs){
+            if(err){
+                req.flash("error",err);
+                return res.redirect("/");
+            }
+            else{
+
+                req.flash("suceess","search matching");
+                res.render("search",{
+                    "title":"search",
+                    "user":req.session.user,
+                    "posts":docs,
+                    "success":req.flash("success").toString(),
+                    "error":req.flash("error").toString()
+                });
+            }
+        })
+    });
     app.get('/archive',function(req,res){
         Post.archive(function(err,docs){
             if(err){
@@ -60,6 +80,14 @@ module.exports = function(app){
                })
            }
        })
+    });
+    app.get('/links',function(req,res){
+        res.render('link',{
+            title:"links",
+            user:req.session.user,
+            success: req.flash('success').toString(),
+            error: req.flash('error').toString()
+        });
     });
     app.get('/tags/:tag',function(req,res){
        Post.getTag(req.params.tag,function(err,docs){

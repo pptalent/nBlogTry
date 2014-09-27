@@ -326,3 +326,40 @@ Post.getTag=function(tag,callback){
         }
     })
 }
+Post.search=function(keyword,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            return callback(err);
+        }
+        else{
+            db.collection("posts",function(err,collection){
+                if(err){
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                    var pattern=new RegExp("^.*"+keyword+".*$","i");
+                    collection.find({
+                        "title":pattern
+                    },{
+                        name:1,
+                        title:1,
+                        time:1
+                    }).sort({
+                        time:-1
+                    }).toArray(function(err,docs){
+                        if(err){
+                            mongodb.close();
+                            return callback(err);
+                        }
+                        else{
+                            mongodb.close();
+                            return callback(null,docs);
+                        }
+                    })
+                }
+            })
+        }
+
+    })
+}
