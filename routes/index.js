@@ -378,6 +378,9 @@ module.exports = function(app){
                 return res.redirect(url);
             }
         })
+    });
+    app.use(function(req,res){
+        res.render("404");
     })
 };
 function checkLogin(req,res,next){
