@@ -1,11 +1,12 @@
 var mongodb=require('./db'),
     markdown=require('markdown').markdown;
 
-function Post(name, title, post,tags) {
+function Post(name,head, title, post,tags) {
     this.name = name;
     this.title = title;
     this.post = post;
-    this.tags=tags
+    this.tags=tags;
+    this.head=head;
 }
 
 module.exports = Post;
@@ -29,6 +30,7 @@ Post.prototype.save = function(callback) {
         title: this.title,
         post: this.post,
         tags:this.tags,
+        head:this.head,
         comments:[],
         pv:0
     };
