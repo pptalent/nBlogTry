@@ -32,6 +32,7 @@ Post.prototype.save = function(callback) {
         tags:this.tags,
         head:this.head,
         comments:[],
+        reprint_info:{},
         pv:0
     };
     //打开数据库
@@ -217,6 +218,31 @@ Post.remove=function(name,day,title,callback){
                     return callback(err);
                 }
                 else{
+                    //如果有 reprint_from，即该文章是转载来的，先保存下来 reprint_from
+                    var reprint_from = "";
+                    if (doc.reprint_info.reprint_from) {
+                        reprint_from = doc.reprint_info.reprint_from;
+                    }
+                    if (reprint_from != "") {
+                        //更新原文章所在文档的 reprint_to
+                        collection.update({
+                            "name": reprint_from.name,
+                            "time.day": reprint_from.day,
+                            "title": reprint_from.title
+                        }, {
+                            $pull: {
+                                "reprint_info.reprint_to": {
+                                    "name": name,
+                                    "day": day,
+                                    "title": title
+                                }}
+                        }, function (err) {
+                            if (err) {
+                                mongodb.close();
+                                return callback(err);
+                            }
+                        });
+                    }
                     collection.remove({
                         "name":name,
                         "time.day":day,
@@ -363,5 +389,81 @@ Post.search=function(keyword,callback){
             })
         }
 
+    })
+}
+Post.reprint=function(reprint_from,reprint_to,callback){
+    mongodb.open(function(err,db){
+        if(err){
+            callback(err);
+        }
+        else{
+            db.collection('posts',function(err,collection){
+                if(err){
+                    mongodb.close();
+                    return callback(err);
+                }
+                else{
+                   collection.findOne({
+                       "name":reprint_from.name,
+                       "time.day":reprint_from.day,
+                       "title":reprint.title
+                   },function(err,doc){
+                       if(err){
+                           mondb.close();
+                           callback(err);
+                       }
+                       else{
+                           var date = new Date();
+                           var time = {
+                               date: date,
+                               year : date.getFullYear(),
+                               month : date.getFullYear() + "-" + (date.getMonth() + 1),
+                               day : date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate(),
+                               minute : date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " +
+                                   date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes())
+                           };
+                           delete doc.id;
+                           doc.name=reprint_to.name;
+                           doc.head=reprint_to.head;
+                           doc.time=time;
+                           doc.title=(doc.title.search(/[转载]/)>-1)?doc.title:"[转载]"+doc.title;
+                           doc.comments=[];
+                           doc.reprint_info={"reprint_from":reprint_from};
+                           doc.pv=0;
+
+                           collection.update({
+                               "name":reprint_from.name,
+                               "time.day":reprint_from.day,
+                               "title":reprint.title
+                           },{
+                               $push:{
+                                   "reprint_info.reprint_to":{
+                                       "name":doc.name,
+                                       "day":time.day,
+                                       "title":doc.title
+                                   }
+                               }
+                           },function(err){
+                               if(err){
+                                   mongodb.close();
+                                   callback(err);
+                               }
+                           });
+                           collection.inset(doc,{
+                               safe:true
+                           },function(err,post){
+                                mongodb.close();
+                               if(err){
+                                   callback(err);
+                               }
+                               else{
+                                   callback(null,post);
+                               }
+                           })
+                       }
+                   })
+                }
+            })
+        }
     })
 }
